@@ -1,8 +1,7 @@
-import tkinter
-from tkinter import filedialog
 from difflib import SequenceMatcher
 
 import PyPDF2
+import docx
 
 from app.models.plagiarism_case import PlagiarismCase
 from views import MainWindow
@@ -16,14 +15,8 @@ class MainController:
         self.search_engine = GoogleSearch()
         self.search_result_processor = SearchResultProcessor()
 
-    def select_file(self):
-        file_path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
-        self.view.entry_1.delete(0, tkinter.END)
-        self.view.entry_1.insert(0, file_path)
-        self.view.entry_1.config(foreground='black')
-
     def read_pdf(self):
-        file_path = self.view.entry_1.get()
+        file_path = self.view.entry_pdf.get()
         with open(file_path, 'rb') as f:
             pdf_reader = PyPDF2.PdfReader(f)
             num_pages = len(pdf_reader.pages)
@@ -31,9 +24,25 @@ class MainController:
             for page_num in range(num_pages):
                 page = pdf_reader.pages[page_num]
                 text += page.extract_text()
-        # print("===================Original===================\n\n\n")
-        # print(text)
-        self.get_sentences(text)
+        print("===================Original===================\n\n\n")
+        print(text)
+        # self.get_sentences(text)
+
+    def read_docx(self):
+        file_path = self.view.entry_docx.get()
+        doc = docx.Document(file_path)
+        text = ""
+        for paragraph in doc.paragraphs:
+            text += paragraph.text
+        print("===================Original===================\n\n\n")
+        print(text)
+        # self.get_sentences(text)
+
+    def read_text(self):
+        text = self.view.entry_text.get("1.0", "end-1c")
+        print("===================Original===================\n\n\n")
+        print(text)
+        # self.get_sentences(text)
 
     def get_sentences(self, text):
         sentences = self.text_processor.get_sentences(text)
