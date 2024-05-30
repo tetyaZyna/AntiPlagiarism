@@ -12,9 +12,3 @@ class GoogleSearch:
         if res['searchInformation'].get('totalResults') == '0':
             return 0
         return res['items']
-
-    # for line in next(generate_next_line(text)):
-    #     results = google_search(line, my_cse_id, num=10)
-    # for result in results:
-    #     print(result.get('link'))
-    #     print(result.get('snippet'))

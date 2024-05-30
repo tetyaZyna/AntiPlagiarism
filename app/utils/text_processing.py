@@ -2,27 +2,25 @@ import re
 
 
 class TextProcessor:
-    def __init__(self, text):
-        self.text = text
-        self._clean_text()
+    def get_sentences(self, text):
+        return self._split_into_sentences(text)
 
-    def get_sentences(self):
-        return self._split_into_sentences()
+    def get_cleaned_text(self, text):
+        return self._clean_text(text)
 
-    def get_cleaned_text(self):
-        return self.text
-
-    def _clean_text(self):
-        cleaned_text = re.sub(r'[^\w\s.]', '', self.text)
+    @staticmethod
+    def _clean_text(text):
+        cleaned_text = re.sub(r'[^\w\s.]', '', text)
         cleaned_text = re.sub(r'\s+', ' ', cleaned_text)
         cleaned_text.strip()
         # print("\n\n\n===================Cleaned===================\n\n\n")
         # print(cleaned_text)
-        self.text = cleaned_text
+        return cleaned_text.strip()
 
-    def _split_into_sentences(self):
+    def _split_into_sentences(self, text):
         sentence_endings = r"[.!?]\s+"
-        sentences = re.split(sentence_endings, self.text)
+        text = self._clean_text(text)
+        sentences = re.split(sentence_endings, text)
         # print("\n\n\n===================Split===================\n\n\n")
         # print(sentences)
         return self._remove_short_sentences(sentences)

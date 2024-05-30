@@ -4,15 +4,17 @@ from difflib import SequenceMatcher
 
 import PyPDF2
 
+from app.models.plagiarism_case import PlagiarismCase
 from views import MainWindow
-from utils import TextProcessor
-from utils import GoogleSearch
+from utils import *
 
 
 class MainController:
     def __init__(self):
         self.view = MainWindow(self)
+        self.text_processor = TextProcessor()
         self.search_engine = GoogleSearch()
+        self.search_result_processor = SearchResultProcessor()
 
     def select_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
@@ -34,13 +36,13 @@ class MainController:
         self.get_sentences(text)
 
     def get_sentences(self, text):
-        text_processor = TextProcessor(text)
-        sentences = text_processor.get_sentences()
+        sentences = self.text_processor.get_sentences(text)
         # print("\n\n\n===================Cleaned sentences===================\n\n\n")
         # print(sentences)
         self.search_plagiat(sentences)
 
     def search_plagiat(self, sentences):
+        found_plagiarism = []
         for sentence in sentences:
             results = self.search_engine.search(sentence)
             if results != 0:
@@ -48,17 +50,29 @@ class MainController:
                 max_result = {}
                 for result in results:
                     if result.get('snippet'):
-                        search_text = TextProcessor(result.get('snippet')).get_cleaned_text()
-                        percentage = SequenceMatcher(None, search_text, sentence).ratio() * 100
+                        search_text = self.text_processor.get_cleaned_text(result.get('snippet'))
+                        percentage = SequenceMatcher(None, search_text, sentence).ratio()
                         if max_percentage < percentage:
                             max_percentage = percentage
                             max_result = result
+                if max_percentage > 0.5:
+                    found_plagiarism.append(PlagiarismCase(sentence, max_percentage, max_result.get('link')))
+
+                    # found_plagiarism.append({"sentence": sentence,
+                    #                          "plagiarism_rate": max_percentage,
+                    #                          "link": max_result.get('link')})
+
                 print("\n")
                 print(sentence)
                 print(max_result.get('link'))
-                print(max_result.get('snippet').get_cleaned_text())
-                print(f"{max_percentage:.2f}%")
+                print(self.text_processor.get_cleaned_text(max_result.get('snippet')))
+                print(f"{max_percentage * 100:.2f}%")
                 print("\n")
+        self.process_search_result(found_plagiarism, len(sentences))
+
+    def process_search_result(self, found_plagiarism, sentences_count):
+        self.search_result_processor.get_report_data(found_plagiarism, sentences_count)
 
     def run(self):
         self.view.mainloop()
+
