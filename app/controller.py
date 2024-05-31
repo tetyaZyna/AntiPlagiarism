@@ -1,22 +1,35 @@
+import sys
 from difflib import SequenceMatcher
 
 import PyPDF2
 import docx
+from PyQt5.QtWidgets import QApplication
 
 from app.models.plagiarism_case import PlagiarismCase
-from views import MainWindow
+from app.config.config_manager import ConfigManager
+from views import *
 from utils import *
 
 
 class MainController:
     def __init__(self):
+        self.app = QApplication(sys.argv)
         self.view = MainWindow(self)
         self.text_processor = TextProcessor()
         self.search_engine = GoogleSearch()
         self.search_result_processor = SearchResultProcessor()
+        self.config_manager = ConfigManager()
+        self.init_app_settings()
+
+    def init_app_settings(self):
+        config = self.config_manager.read_config()
+        self.view.settings_entry_save_path.setText(config.get("path_to_save"))
+
+    def update_settings(self, path_to_save=''):
+        self.config_manager.write_config(path_to_save)
 
     def read_pdf(self):
-        file_path = self.view.entry_pdf.get()
+        file_path = self.view.entry_pdf.text()
         with open(file_path, 'rb') as f:
             pdf_reader = PyPDF2.PdfReader(f)
             num_pages = len(pdf_reader.pages)
@@ -26,28 +39,28 @@ class MainController:
                 text += page.extract_text()
         print("===================Original===================\n\n\n")
         print(text)
-        # self.get_sentences(text)
+        self.get_sentences(text)
 
     def read_docx(self):
-        file_path = self.view.entry_docx.get()
+        file_path = self.view.entry_docx.text()
         doc = docx.Document(file_path)
         text = ""
         for paragraph in doc.paragraphs:
             text += paragraph.text
         print("===================Original===================\n\n\n")
         print(text)
-        # self.get_sentences(text)
+        self.get_sentences(text)
 
     def read_text(self):
-        text = self.view.entry_text.get("1.0", "end-1c")
+        text = self.view.entry_text.toPlainText().strip() + '.'
         print("===================Original===================\n\n\n")
         print(text)
-        # self.get_sentences(text)
+        self.get_sentences(text)
 
     def get_sentences(self, text):
         sentences = self.text_processor.get_sentences(text)
-        # print("\n\n\n===================Cleaned sentences===================\n\n\n")
-        # print(sentences)
+        print("\n\n\n===================Cleaned sentences===================\n\n\n")
+        print(sentences)
         self.search_plagiat(sentences)
 
     def search_plagiat(self, sentences):
@@ -83,5 +96,11 @@ class MainController:
         self.search_result_processor.get_report_data(found_plagiarism, sentences_count)
 
     def run(self):
-        self.view.mainloop()
+        # self.view.mainloop()
+        self.view.show()
+        self.app.exec()
+
+
+
+
 
