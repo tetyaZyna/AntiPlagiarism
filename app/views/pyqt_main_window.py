@@ -14,8 +14,6 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(550, 340)
         self.setGeometry(0, 0, 550, 340)
         self._move_to_center()
-        # with open("views/style/black_theme.css", "r") as f:
-        #     self.setStyleSheet(f.read())
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
