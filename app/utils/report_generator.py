@@ -132,9 +132,3 @@ class ReportGenerator:
         self._add_progress_bar_image(doc, plagiarism_percentage)
         self._add_plagiarism_detail(doc, found_plagiarism)
         self._save_file(doc, save_path, filename)
-
-
-# gen = ReportGenerator()
-# new_case = PlagiarismCase("Это текст", 0.85, "http://example.com")
-#
-# gen.generate_document([new_case], 78, "12345", 'C:/Users/Acer/Downloads')

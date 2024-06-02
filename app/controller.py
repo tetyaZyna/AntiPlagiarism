@@ -83,17 +83,6 @@ class MainController:
                             max_result = result
                 if max_percentage > 0.5:
                     found_plagiarism.append(PlagiarismCase(sentence, max_percentage, max_result.get('link')))
-
-                    # found_plagiarism.append({"sentence": sentence,
-                    #                          "plagiarism_rate": max_percentage,
-                    #                          "link": max_result.get('link')})
-
-                # print("\n")
-                # print(sentence)
-                # print(max_result.get('link'))
-                # print(self.text_processor.get_cleaned_text(max_result.get('snippet')))
-                # print(f"{max_percentage * 100:.2f}%")
-                # print("\n")
         self.process_search_result(found_plagiarism, len(sentences), filename)
 
     def process_search_result(self, found_plagiarism, sentences_count, filename):
