@@ -1,3 +1,5 @@
+import os
+
 from docx import Document
 import matplotlib.pyplot as plt
 import io
@@ -8,51 +10,16 @@ from datetime import datetime
 class ReportGenerator:
 
     def __init__(self):
-        self.buffer = io.BytesIO()
         self.progression = {'excellent': ['#31C013', '#B5EFA9'],
                             'good': ['#68CC14', '#CCF2AB'],
                             'normal': ['#E6E317', '#F9F8B0'],
                             'bad': ['#E61C17', '#F9B2B0',]}
-        self.template_path = "C:\\Киберхлам v.2.0\\Диплом\\Application\\app\\config\\template.docx" #todo
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.template_path = os.path.join(current_dir, "template/template.docx")
 
     def _load_template(self):
         doc = Document(self.template_path)
         return doc
-
-    # def _generate_diagram(self, plagiarism_percentage):
-    #     if plagiarism_percentage >= 90:
-    #         colours = self.progression.get('excellent')
-    #         short_result = 'excellent'
-    #     elif plagiarism_percentage >= 80:
-    #         colours = self.progression.get('good')
-    #         short_result = 'good'
-    #     elif plagiarism_percentage >= 70:
-    #         colours = self.progression.get('normal')
-    #         short_result = 'normal'
-    #     else:
-    #         colours = self.progression.get('bad')
-    #         short_result = 'bad'
-    #     fig = plt.figure(figsize=(5, 5), facecolor='#ffffff00')
-    #     ax = fig.add_subplot(1, 1, 1)
-    #     pie = ax.pie([plagiarism_percentage, 100 - plagiarism_percentage],
-    #                  colors=colours,
-    #                  startangle=90,
-    #                  labeldistance=1.15,
-    #                  counterclock=False)
-    #     centre_circle = plt.Circle((0, 0), 0.6, fc='#ffffff')
-    #     fig.gca().add_artist(centre_circle)
-    #     centre_text = f' {plagiarism_percentage}%'
-    #     centre_text_line_2 = f'{short_result}'
-    #     ax.text(0, 0, centre_text, horizontalalignment='center',
-    #             verticalalignment='center',
-    #             fontsize=32, fontweight='bold',
-    #             color='black')
-    #     ax.text(0, -0.2, centre_text_line_2, horizontalalignment='center',
-    #             verticalalignment='center',
-    #             fontsize=12, fontweight='bold',
-    #             color='grey')
-    #     plt.savefig(self.buffer, format='png', bbox_inches='tight', pad_inches=0)
-    #     plt.close()
 
     def _generate_progress_bar(self, plagiarism_percentage):
         if plagiarism_percentage >= 90:
@@ -75,79 +42,20 @@ class ReportGenerator:
         ax.set_xlim(0, 100)
         ax.set_ylim(-1, 1)
         ax.axis('off')
-        plt.savefig(self.buffer, format='png', bbox_inches='tight', pad_inches=0)
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png', bbox_inches='tight', pad_inches=0)
         plt.close()
+        return buffer
 
     @staticmethod
     def _validate_percentage(plagiarism_percentage):
         if plagiarism_percentage < 0:
-            return 0
-        elif plagiarism_percentage > 100:
             return 100
+        elif plagiarism_percentage > 100:
+            return 0
         else:
-            return round(plagiarism_percentage, 1)
-
-    # def generate_document(self, plagiarism_percentage):
-    #     valid_percentage = self.validate_percentage(plagiarism_percentage)
-    #     self._generate_diagram(valid_percentage)
-    #     self.buffer.seek(0)
-    #     doc = Document()
-    #
-    #     section = doc.sections[0]
-    #     section.left_margin = Inches(0.5)
-    #     section.right_margin = Inches(0.5)
-    #     section.different_first_page = True
-    #
-    #     self.add_header(section)
-    #
-    #
-    #
-    #
-    #
-    #
-    #     heading = doc.add_heading('Results', level=1)
-    #     heading.paragraph_format.left_indent = Inches(1.0)
-    #
-    #     doc.add_picture(self.buffer)
-    #
-    #     if len(doc.sections) > 1:
-    #         section = doc.sections[1]
-    #         for paragraph in section.header.paragraphs:
-    #             paragraph.clear()
-    #
-    #     doc.save('document_with_progress_bar.docx')
-    #     print("Ready")
-    #
-
-    #
-    # @staticmethod
-    # def add_header(section):
-    #     header = section.header
-    #
-    #     section_width = section.page_width - section.left_margin - section.right_margin
-    #
-    #     table = header.add_table(rows=1, cols=2, width=section_width)
-    #
-    #     cell_left = table.cell(0, 0)
-    #     cell_right = table.cell(0, 1)
-    #
-    #     left_paragraph = cell_left.paragraphs[0]
-    #     left_run = left_paragraph.add_run("AntiPlagiarism")
-    #     left_run.font.name = 'Arial'
-    #     left_run.font.size = Pt(14)
-    #     left_run.bold = True
-    #     left_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    #
-    #     right_paragraph = cell_right.paragraphs[0]
-    #     right_run = right_paragraph.add_run(f"Generated:\n{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}")
-    #     right_run.font.name = 'Arial'
-    #     right_run.font.size = Pt(10)
-    #     right_run.bold = True
-    #     right_paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    #
-    #     separator_paragraph = header.add_paragraph()
-    #     separator_paragraph.add_run("__________________________________________________________________________________"
-    #                                 "__________________________________________________")
+            originality_percentage = 100 - plagiarism_percentage
+            return round(originality_percentage, 1)
 
     @staticmethod
     def _replace_text_in_paragraphs(paragraphs, old_text, new_text):
@@ -184,23 +92,49 @@ class ReportGenerator:
         if headers:
             self._replace_text_in_headers(doc, old_text, new_text)
 
-    def _add_diagram_image(self, doc):
+    def _add_progress_bar_image(self, doc, plagiarism_percentage):
+        buffer = self._generate_progress_bar(self._validate_percentage(plagiarism_percentage))
         tables = doc.tables
         p = tables[0].rows[0].cells[0].add_paragraph()
         r = p.add_run()
-        r.add_picture(self.buffer)
+        r.add_picture(buffer)
 
-    def generate_document(self, plagiarism_percentage, filename):
+    @staticmethod
+    def _add_plagiarism_detail(doc, plagiarisms):
+        start_index = 1
+        for plagiarism in plagiarisms:
+            paragraph = doc.add_paragraph(f'{start_index}. {plagiarism.sentence}')
+            run = paragraph.runs[0]
+            run.font.name = 'Arial'
+            paragraph = doc.add_paragraph(f'{plagiarism.link}')
+            run = paragraph.runs[0]
+            run.font.name = 'Arial'
+            start_index += 1
+
+    @staticmethod
+    def _save_file(doc, save_path, filename):
+        filename = f'{save_path}/report_{filename}.docx'
+        if os.path.exists(filename):
+            name, ext = os.path.splitext(filename)
+            index = 1
+            new_filename = "{}_[{}]{}".format(name, index, ext)
+            while os.path.exists(new_filename):
+                index += 1
+                new_filename = "{}_[{}]{}".format(name, index, ext)
+            filename = new_filename
+        doc.save(filename)
+
+    def generate_document(self, found_plagiarism, plagiarism_percentage, filename, save_path):
         doc = self._load_template()
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self._replace_text(doc, '[time_generated]', current_time, True, True)
         self._replace_text(doc, '[filename]', f'"{filename}"')
-        self._generate_progress_bar(self._validate_percentage(plagiarism_percentage))
-        self._add_diagram_image(doc)
-        doc.save("new_docx.docx")
+        self._add_progress_bar_image(doc, plagiarism_percentage)
+        self._add_plagiarism_detail(doc, found_plagiarism)
+        self._save_file(doc, save_path, filename)
 
 
-gen = ReportGenerator()
-gen.generate_document(100, "звіт.docx")
-
-
+# gen = ReportGenerator()
+# new_case = PlagiarismCase("Это текст", 0.85, "http://example.com")
+#
+# gen.generate_document([new_case], 78, "12345", 'C:/Users/Acer/Downloads')

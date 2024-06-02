@@ -1,3 +1,4 @@
+import os
 import sys
 from difflib import SequenceMatcher
 
@@ -19,6 +20,7 @@ class MainController:
         self.search_engine = GoogleSearch()
         self.search_result_processor = SearchResultProcessor()
         self.config_manager = ConfigManager()
+        self.report_generator = ReportGenerator()
         self.init_app_settings()
 
     def init_app_settings(self):
@@ -37,9 +39,10 @@ class MainController:
             for page_num in range(num_pages):
                 page = pdf_reader.pages[page_num]
                 text += page.extract_text()
-        print("===================Original===================\n\n\n")
-        print(text)
-        self.get_sentences(text)
+        # print("===================Original===================\n\n\n")
+        # print(text)
+        file_name = os.path.splitext(os.path.basename(file_path))[0]
+        self.get_sentences(text, file_name)
 
     def read_docx(self):
         file_path = self.view.entry_docx.text()
@@ -47,23 +50,24 @@ class MainController:
         text = ""
         for paragraph in doc.paragraphs:
             text += paragraph.text
-        print("===================Original===================\n\n\n")
-        print(text)
-        self.get_sentences(text)
+        # print("===================Original===================\n\n\n")
+        # print(text)
+        file_name = os.path.splitext(os.path.basename(file_path))[0]
+        self.get_sentences(text, file_name)
 
     def read_text(self):
         text = self.view.entry_text.toPlainText().strip() + '.'
-        print("===================Original===================\n\n\n")
-        print(text)
+        # print("===================Original===================\n\n\n")
+        # print(text)
         self.get_sentences(text)
 
-    def get_sentences(self, text):
+    def get_sentences(self, text, filename='entered_text'):
         sentences = self.text_processor.get_sentences(text)
-        print("\n\n\n===================Cleaned sentences===================\n\n\n")
-        print(sentences)
-        self.search_plagiat(sentences)
+        # print("\n\n\n===================Cleaned sentences===================\n\n\n")
+        # print(sentences)
+        self.search_plagiat(sentences, filename)
 
-    def search_plagiat(self, sentences):
+    def search_plagiat(self, sentences, filename):
         found_plagiarism = []
         for sentence in sentences:
             results = self.search_engine.search(sentence)
@@ -84,23 +88,22 @@ class MainController:
                     #                          "plagiarism_rate": max_percentage,
                     #                          "link": max_result.get('link')})
 
-                print("\n")
-                print(sentence)
-                print(max_result.get('link'))
-                print(self.text_processor.get_cleaned_text(max_result.get('snippet')))
-                print(f"{max_percentage * 100:.2f}%")
-                print("\n")
-        self.process_search_result(found_plagiarism, len(sentences))
+                # print("\n")
+                # print(sentence)
+                # print(max_result.get('link'))
+                # print(self.text_processor.get_cleaned_text(max_result.get('snippet')))
+                # print(f"{max_percentage * 100:.2f}%")
+                # print("\n")
+        self.process_search_result(found_plagiarism, len(sentences), filename)
 
-    def process_search_result(self, found_plagiarism, sentences_count):
-        self.search_result_processor.get_report_data(found_plagiarism, sentences_count)
+    def process_search_result(self, found_plagiarism, sentences_count, filename):
+        plagiarism_percentages = self.search_result_processor.get_report_data(found_plagiarism, sentences_count)
+        self.generate_report(found_plagiarism, plagiarism_percentages, filename)
+
+    def generate_report(self, found_plagiarism, plagiarism_percentages, filename):
+        save_path = self.config_manager.read_config().get("path_to_save")
+        self.report_generator.generate_document(found_plagiarism, plagiarism_percentages, filename, save_path)
 
     def run(self):
-        # self.view.mainloop()
         self.view.show()
         self.app.exec()
-
-
-
-
-
