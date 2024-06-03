@@ -33,6 +33,9 @@ class MainController:
 
     def read_pdf(self):
         file_path = self.view.entry_pdf.text()
+        if not os.path.exists(file_path):
+            self.view.add_info_label("Path doesn't exist", 'red')
+            return
         with open(file_path, 'rb') as f:
             pdf_reader = PyPDF2.PdfReader(f)
             num_pages = len(pdf_reader.pages)
@@ -45,6 +48,9 @@ class MainController:
 
     def read_docx(self):
         file_path = self.view.entry_docx.text()
+        if not os.path.exists(file_path):
+            self.view.add_info_label("Path doesn't exist", 'red')
+            return
         doc = docx.Document(file_path)
         text = ""
         for paragraph in doc.paragraphs:
