@@ -5,6 +5,7 @@ from difflib import SequenceMatcher
 import PyPDF2
 import docx
 from PyQt5.QtWidgets import QApplication
+from googleapiclient.errors import HttpError
 
 from app.models.plagiarism_case import PlagiarismCase
 from app.config.config_manager import ConfigManager
@@ -39,8 +40,6 @@ class MainController:
             for page_num in range(num_pages):
                 page = pdf_reader.pages[page_num]
                 text += page.extract_text()
-        # print("===================Original===================\n\n\n")
-        # print(text)
         file_name = os.path.splitext(os.path.basename(file_path))[0]
         self.get_sentences(text, file_name)
 
@@ -50,25 +49,22 @@ class MainController:
         text = ""
         for paragraph in doc.paragraphs:
             text += paragraph.text
-        # print("===================Original===================\n\n\n")
-        # print(text)
         file_name = os.path.splitext(os.path.basename(file_path))[0]
         self.get_sentences(text, file_name)
 
     def read_text(self):
         text = self.view.entry_text.toPlainText().strip() + '.'
-        # print("===================Original===================\n\n\n")
-        # print(text)
         self.get_sentences(text)
 
     def get_sentences(self, text, filename='entered_text'):
         sentences = self.text_processor.get_sentences(text)
-        # print("\n\n\n===================Cleaned sentences===================\n\n\n")
-        # print(sentences)
         self.search_plagiat(sentences, filename)
 
     def search_plagiat(self, sentences, filename):
+        self.view.start_progress_bar()
         found_plagiarism = []
+        sentences_count = len(sentences)
+        current_sentence = 1
         for sentence in sentences:
             results = self.search_engine.search(sentence)
             if results != 0:
@@ -76,14 +72,31 @@ class MainController:
                 max_result = {}
                 for result in results:
                     if result.get('snippet'):
-                        search_text = self.text_processor.get_cleaned_text(result.get('snippet'))
+                        try:
+                            search_text = self.text_processor.get_cleaned_text(result.get('snippet'))
+                        except HttpError:
+                            self.view.add_info_label("Google error", 'red')
+                            break
+                        except KeyError:
+                            self.view.add_info_label("Google key error", 'red')
+                            break
+                        except AttributeError:
+                            self.view.add_info_label("Google attribute error", 'red')
+                            break
                         percentage = SequenceMatcher(None, search_text, sentence).ratio()
                         if max_percentage < percentage:
                             max_percentage = percentage
                             max_result = result
                 if max_percentage > 0.5:
                     found_plagiarism.append(PlagiarismCase(sentence, max_percentage, max_result.get('link')))
-        self.process_search_result(found_plagiarism, len(sentences), filename)
+                self.view.update_progress_bar(self.calculate_progress_percentage(sentences_count, current_sentence))
+                current_sentence += 1
+        self.view.add_info_label("Done")
+        self.process_search_result(found_plagiarism, sentences_count, filename)
+
+    @staticmethod
+    def calculate_progress_percentage(sentences_count, current_sentence):
+        return int((current_sentence/sentences_count) * 100)
 
     def process_search_result(self, found_plagiarism, sentences_count, filename):
         plagiarism_percentages = self.search_result_processor.get_report_data(found_plagiarism, sentences_count)

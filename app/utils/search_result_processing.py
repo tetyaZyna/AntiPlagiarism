@@ -10,5 +10,8 @@ class SearchResultProcessor:
                 general_plagiarism_rate += 1
             else:
                 general_plagiarism_rate += case.plagiarism_rate
-        plagiarism_percentages = (general_plagiarism_rate / sentences_count) * 100
-        return plagiarism_percentages
+        if sentences_count == 0:
+            return 0
+        else:
+            plagiarism_percentages = (general_plagiarism_rate / sentences_count) * 100
+            return plagiarism_percentages

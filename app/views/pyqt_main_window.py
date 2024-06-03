@@ -6,6 +6,8 @@ from PyQt5.QtWidgets import *
 class MainWindow(QMainWindow):
     def __init__(self, controller):
         super().__init__()
+        self.info_label = None
+        self.progressBar = None
         self.input_prompt_text = "Введіть або виберіть шлях до файлу"
         self.controller = controller
         self.setWindowTitle("AntiPlagiat")
@@ -65,8 +67,8 @@ class MainWindow(QMainWindow):
 
         self.status_bar = self.statusBar()
         # self.status_bar.showMessage('Ready', 5000)
-        self.tokens_left = QLabel("0 : tokens left")
-        self.status_bar.addPermanentWidget(self.tokens_left)
+        # self.tokens_left = QLabel("0 : tokens left")
+        # self.status_bar.addPermanentWidget(self.tokens_left)
         self.main_layout.addWidget(self.status_bar)
 
     def _fill_settings_page(self):
@@ -195,3 +197,39 @@ class MainWindow(QMainWindow):
         screen_center = QDesktopWidget().availableGeometry().center()
         window_rect.moveCenter(screen_center)
         self.move(window_rect.topLeft())
+
+    def start_progress_bar(self):
+        self.clear_status_bar()
+        self.progressBar = QProgressBar(self)
+        self.progressBar.setFixedHeight(20)
+        self.status_bar.addWidget(self.progressBar)
+
+    def update_progress_bar(self, value):
+        self.progressBar.setValue(value)
+        if value >= 100:
+            self._remove_progress_bar()
+
+    def add_info_label(self, text, color='green'):
+        self.clear_status_bar()
+        self.info_label = QLabel(self)
+        self.info_label.setText(text)
+        self.info_label.setFixedHeight(20)
+        self.info_label.setStyleSheet(f"color: {color};")
+        self.status_bar.addWidget(self.info_label)
+
+    def _remove_progress_bar(self):
+        if self.progressBar is not None:
+            self.status_bar.removeWidget(self.progressBar)
+            self.progressBar.deleteLater()
+            self.progressBar = None
+
+    def _remove_info_label(self):
+        if self.info_label is not None:
+            self.status_bar.removeWidget(self.info_label)
+            self.info_label.deleteLater()
+            self.info_label = None
+
+    def clear_status_bar(self):
+        self._remove_info_label()
+        self._remove_progress_bar()
+
