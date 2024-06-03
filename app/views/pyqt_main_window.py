@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         self.settings_layout = QVBoxLayout(self.settings_widget)
         self.settings_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.stacked_widget = QStackedWidget()
+        self.stacked_widget = QStackedWidget(self)
         self.layout.addWidget(self.stacked_widget)
         self.stacked_widget.addWidget(self.main_widget)
         self.stacked_widget.addWidget(self.settings_widget)
@@ -41,17 +41,18 @@ class MainWindow(QMainWindow):
         label_1.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(label_1)
 
-        self.tab_widget = QTabWidget()
+        self.tab_widget = QTabWidget(self)
         self.main_layout.addWidget(self.tab_widget)
-
         self._create_tabs()
+        self.tab_widget.currentChanged.connect(self.tab_changed)
 
         control_button_layout = QHBoxLayout()
         self.main_layout.addLayout(control_button_layout)
 
-        start_button = QPushButton("Почати аналіз")
-        start_button.clicked.connect(self._start_analysis)
-        control_button_layout.addWidget(start_button)
+        self.start_button = QPushButton("Почати аналіз")
+        self.start_button.clicked.connect(self._start_analysis)
+        self.start_button.setEnabled(False)
+        control_button_layout.addWidget(self.start_button)
 
         settings_button = QPushButton()
         settings_button.clicked.connect(self._open_settings)
@@ -59,16 +60,13 @@ class MainWindow(QMainWindow):
         settings_button.setFixedWidth(30)
         control_button_layout.addWidget(settings_button)
 
-        separator = QFrame()
+        separator = QFrame(self)
         separator.setFrameShape(QFrame.HLine)
         separator.setFrameShadow(QFrame.Sunken)
         separator.setContentsMargins(0, 0, 0, 0)
         self.main_layout.addWidget(separator)
 
         self.status_bar = self.statusBar()
-        # self.status_bar.showMessage('Ready', 5000)
-        # self.tokens_left = QLabel("0 : tokens left")
-        # self.status_bar.addPermanentWidget(self.tokens_left)
         self.main_layout.addWidget(self.status_bar)
 
     def _fill_settings_page(self):
@@ -80,7 +78,7 @@ class MainWindow(QMainWindow):
         section_label_1.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         settings_field_layout.addWidget(section_label_1)
 
-        separator = QFrame()
+        separator = QFrame(self)
         separator.setFrameShape(QFrame.HLine)
         separator.setFrameShadow(QFrame.Sunken)
         settings_field_layout.addWidget(separator)
@@ -134,6 +132,7 @@ class MainWindow(QMainWindow):
 
         self.entry_pdf = QLineEdit(tab)
         self.entry_pdf.setPlaceholderText(self.input_prompt_text)
+        self.entry_pdf.textChanged.connect(self.check_empty)
         input_layout_pdf.addWidget(self.entry_pdf)
 
         button = QPushButton("Обрати файл", tab)
@@ -145,6 +144,7 @@ class MainWindow(QMainWindow):
 
         self.entry_docx = QLineEdit(tab)
         self.entry_docx.setPlaceholderText(self.input_prompt_text)
+        self.entry_docx.textChanged.connect(self.check_empty)
         input_layout_docx.addWidget(self.entry_docx)
 
         button_1 = QPushButton("Обрати файл", tab)
@@ -153,9 +153,28 @@ class MainWindow(QMainWindow):
 
     def _fill_tab_text(self, tab):
         input_layout_text = QHBoxLayout(tab)
-
         self.entry_text = QPlainTextEdit(tab)
+        self.entry_text.textChanged.connect(self.check_empty)
         input_layout_text.addWidget(self.entry_text)
+
+    @pyqtSlot(int)
+    def tab_changed(self, index):
+        if index == 0:
+            self.update_start_button(self.entry_pdf.text().strip() != "")
+        elif index == 1:
+            self.update_start_button(self.entry_docx.text().strip() != "")
+        elif index == 2:
+            self.update_start_button(self.entry_text.toPlainText().strip() != "")
+
+    @pyqtSlot()
+    def check_empty(self):
+        current_tab = self.tab_widget.currentIndex()
+        if current_tab == 0:
+            self.update_start_button(self.entry_pdf.text().strip() != "")
+        elif current_tab == 1:
+            self.update_start_button(self.entry_docx.text().strip() != "")
+        elif current_tab == 2:
+            self.update_start_button(self.entry_text.toPlainText().strip() != "")
 
     def _start_analysis(self):
         current_tab = self.tab_widget.currentIndex()
@@ -170,11 +189,16 @@ class MainWindow(QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(self, "Обрати файл", "", "PDF files (*.pdf)")
         if file_path:
             self.entry_pdf.setText(file_path)
+            self.update_start_button(True)
 
     def _select_file_docx(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Обрати файл", "", "DOCX files (*.docx)")
         if file_path:
             self.entry_docx.setText(file_path)
+            self.update_start_button(True)
+
+    def update_start_button(self, enabled):
+        self.start_button.setEnabled(enabled)
 
     def _path_select(self):
         folder_path = QFileDialog.getExistingDirectory(self, "Обрати папку", "")
@@ -232,4 +256,3 @@ class MainWindow(QMainWindow):
     def clear_status_bar(self):
         self._remove_info_label()
         self._remove_progress_bar()
-

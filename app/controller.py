@@ -62,6 +62,7 @@ class MainController:
 
     def search_plagiat(self, sentences, filename):
         self.view.start_progress_bar()
+        self.view.update_start_button(False)
         found_plagiarism = []
         sentences_count = len(sentences)
         current_sentence = 1
@@ -76,12 +77,15 @@ class MainController:
                             search_text = self.text_processor.get_cleaned_text(result.get('snippet'))
                         except HttpError:
                             self.view.add_info_label("Google error", 'red')
+                            self.view.update_start_button(True)
                             break
                         except KeyError:
                             self.view.add_info_label("Google key error", 'red')
+                            self.view.update_start_button(True)
                             break
                         except AttributeError:
                             self.view.add_info_label("Google attribute error", 'red')
+                            self.view.update_start_button(True)
                             break
                         percentage = SequenceMatcher(None, search_text, sentence).ratio()
                         if max_percentage < percentage:
@@ -93,6 +97,7 @@ class MainController:
                 current_sentence += 1
         self.view.add_info_label("Done")
         self.process_search_result(found_plagiarism, sentences_count, filename)
+        self.view.update_start_button(True)
 
     @staticmethod
     def calculate_progress_percentage(sentences_count, current_sentence):
