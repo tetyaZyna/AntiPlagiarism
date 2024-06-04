@@ -18,7 +18,7 @@ class MainController:
         self.app = QApplication(sys.argv)
         self.view = MainWindow(self)
         self.text_processor = TextProcessor()
-        self.search_engine = GoogleSearch()
+        self.search_engine = ScrapGoogleSearch()
         self.search_result_processor = SearchResultProcessor()
         self.config_manager = ConfigManager()
         self.report_generator = ReportGenerator()
@@ -63,36 +63,32 @@ class MainController:
         self.get_sentences(text)
 
     def get_sentences(self, text, filename='entered_text'):
+        self.view.start_progress_bar()
+        self.view.update_start_button(False)
         sentences = self.text_processor.get_sentences(text)
         self.search_plagiat(sentences, filename)
 
     def search_plagiat(self, sentences, filename):
-        self.view.start_progress_bar()
-        self.view.update_start_button(False)
         found_plagiarism = []
         sentences_count = len(sentences)
         current_sentence = 1
         for sentence in sentences:
-            results = self.search_engine.search(sentence)
+            try:
+                results = self.search_engine.search(sentence)
+            except HttpError:
+                self.view.add_info_label("Google error", 'red')
+                self.view.update_start_button(True)
+                return
+            except NoSearchResultsError:
+                self.view.add_info_label("Google error", 'red')
+                self.view.update_start_button(True)
+                return
             if results != 0:
                 max_percentage = 0
                 max_result = {}
                 for result in results:
                     if result.get('snippet'):
-                        try:
-                            search_text = self.text_processor.get_cleaned_text(result.get('snippet'))
-                        except HttpError:
-                            self.view.add_info_label("Google error", 'red')
-                            self.view.update_start_button(True)
-                            break
-                        except KeyError:
-                            self.view.add_info_label("Google key error", 'red')
-                            self.view.update_start_button(True)
-                            break
-                        except AttributeError:
-                            self.view.add_info_label("Google attribute error", 'red')
-                            self.view.update_start_button(True)
-                            break
+                        search_text = self.text_processor.get_cleaned_text(result.get('snippet'))
                         percentage = SequenceMatcher(None, search_text, sentence).ratio()
                         if max_percentage < percentage:
                             max_percentage = percentage

@@ -5,6 +5,7 @@ class GoogleSearch:
     def __init__(self):
         self.my_cse_id = "94fd014cd241f4580"
         self.dev_key = "AIzaSyCex7LeNnrCiqnwgKw7-EE6W0BPObtGGuA"
+        # self.dev_key = "AIzaSyCuyzY3RW_W-nW0MPuqNHP5xVg-oM15P2U"
 
     def search(self, search_term, **kwargs):
         service = build("customsearch", "v1", developerKey=self.dev_key)

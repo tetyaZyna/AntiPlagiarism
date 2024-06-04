@@ -227,6 +227,7 @@ class MainWindow(QMainWindow):
         self.progressBar = QProgressBar(self)
         self.progressBar.setFixedHeight(20)
         self.status_bar.addWidget(self.progressBar)
+        self.progressBar.setValue(0)
 
     def update_progress_bar(self, value):
         self.progressBar.setValue(value)
