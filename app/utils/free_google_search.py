@@ -53,9 +53,3 @@ class ScrapGoogleSearch:
             results.append({'title': title, 'link': link, 'snippet': snippet})
 
         return results
-        # todo: развести на отдельній поток, ускорить
-
-        # if len(results) > 0:
-        #     return results
-        # else:
-        #     raise NoSearchResultsError
