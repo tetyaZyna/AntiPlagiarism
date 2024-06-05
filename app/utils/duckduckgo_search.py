@@ -7,63 +7,37 @@ from bs4 import BeautifulSoup
 
 class DuckDuckGoSearch:
     def __init__(self):
-        self.headers_list = [
-            {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                              '(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-                'Connection': 'keep-alive'
-            },
-            # {
-            #     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
-            #                   '(KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36',
-            #     'Connection': 'keep-alive'
-            # },
-            # {
-            #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-            #                   '(KHTML, like Gecko) Edge/95.0.1020.53 Safari/537.36',
-            #     'Connection': 'keep-alive'
-            # }
-        ]
         self.session = requests.Session()
 
     def search(self, query, attempts=0):
+        # print(f"query: {query}")
         if attempts <= 5:
-            # start_time = time.time()
-
             time.sleep(random.uniform(0, 1))
-
             url = f"https://duckduckgo.com/html/?q={query}"
             headers = self._generate_header()
             response = self.session.get(url, headers=headers, timeout=10, allow_redirects=True)
-
             if response.status_code == 202:
                 response = self.search(query, attempts+1)
-
-            # end_time = time.time()
-            # execution_time = end_time - start_time
-            # print(f"response execution time: {execution_time:.4f} seconds")
         else:
             return [{'title': '', 'link': '', 'snippet': ''}]
-
         return self._parce_response(response)
 
     @staticmethod
     def _parce_response(response):
-        # start_time = time.time()
-
         soup = BeautifulSoup(response.text, 'lxml')
         result_divs = soup.find_all('div', class_='result')
+        if result_divs is None:
+            return [{'title': '', 'link': '', 'snippet': ''}]
         results = []
         for div in result_divs:
-            title = div.find('a', class_='result__a').text
-            link = div.find('a', class_='result__url').text
-            snippet = div.find('a', class_='result__snippet').text
-            results.append({'title': title, 'link': link, 'snippet': snippet})
-
-        # end_time = time.time()
-        # execution_time = end_time - start_time
-        # print(f"parser execution time: {execution_time:.4f} seconds")
-
+            try:
+                title = div.find('a', class_='result__a').text
+                link = div.find('a', class_='result__url').text
+                snippet = div.find('a', class_='result__snippet').text
+                results.append({'title': title, 'link': link, 'snippet': snippet})
+            except AttributeError:
+                results.append({'title': "", 'link': "", 'snippet': ""})
+        # print(results)
         return results
 
     @staticmethod

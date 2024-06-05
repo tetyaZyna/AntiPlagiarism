@@ -221,10 +221,6 @@ class MainWindow(QMainWindow):
         window_rect.moveCenter(screen_center)
         self.move(window_rect.topLeft())
 
-    # def start_progress_bar(self):
-    #     self.clear_status_bar()
-    #     self.progress_bar.setValue(0)
-
     def update_progress_bar(self, value=0):
         self._clear_info_label()
         self.progress_bar.show()
