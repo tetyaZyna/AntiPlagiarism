@@ -10,7 +10,6 @@ class DuckDuckGoSearch:
         self.session = requests.Session()
 
     def search(self, query, attempts=0):
-        # print(f"query: {query}")
         if attempts <= 5:
             time.sleep(random.uniform(0, 1))
             url = f"https://duckduckgo.com/html/?q={query}"
@@ -37,7 +36,6 @@ class DuckDuckGoSearch:
                 results.append({'title': title, 'link': link, 'snippet': snippet})
             except AttributeError:
                 results.append({'title': "", 'link': "", 'snippet': ""})
-        # print(results)
         return results
 
     @staticmethod

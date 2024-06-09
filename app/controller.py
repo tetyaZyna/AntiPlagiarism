@@ -8,7 +8,6 @@ from difflib import SequenceMatcher
 import PyPDF2
 import docx
 from PyQt5.QtWidgets import QApplication
-from googleapiclient.errors import HttpError
 
 from app.models.plagiarism_case import PlagiarismCase
 from app.config.config_manager import ConfigManager
@@ -89,14 +88,6 @@ class MainController:
         for sentence in sentences:
             try:
                 results = self.search_engine.search(sentence)
-            except HttpError:
-                self.view.update_info_label("Google error", 'red')
-                self.view.update_start_button(True)
-                return
-            except NoSearchResultsError:
-                self.view.update_info_label("Google error", 'red')
-                self.view.update_start_button(True)
-                return
             except Exception as e:
                 print("An error occurred:", e)
                 print("Full traceback:")
