@@ -9,6 +9,7 @@ class MainWindow(QMainWindow):
         self.input_prompt_text = "Введіть або виберіть шлях до файлу"
         self.controller = controller
         self.setWindowTitle("AntiPlagiat")
+        self.setWindowIcon(QIcon("views/icons/app_icon.ico"))
         self.setMinimumSize(550, 340)
         self.setGeometry(0, 0, 550, 340)
         self._move_to_center()

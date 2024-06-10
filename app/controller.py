@@ -3,13 +3,11 @@ import sys
 import threading
 import traceback
 from datetime import datetime
-from difflib import SequenceMatcher
 
 import PyPDF2
 import docx
 from PyQt5.QtWidgets import QApplication
 
-from app.models.plagiarism_case import PlagiarismCase
 from app.config.config_manager import ConfigManager
 from views import *
 from utils import *
@@ -92,19 +90,11 @@ class MainController:
                 print("An error occurred:", e)
                 print("Full traceback:")
                 traceback.print_exc()
-                results = 0
-            if results != 0:
-                max_percentage = 0
-                max_result = {}
-                for result in results:
-                    if result.get('snippet'):
-                        search_text = self.text_processor.get_cleaned_text(result.get('snippet'))
-                        percentage = SequenceMatcher(None, search_text, sentence).ratio()
-                        if max_percentage < percentage:
-                            max_percentage = percentage
-                            max_result = result
-                if max_percentage > 0.5:
-                    found_plagiarism.append(PlagiarismCase(sentence, max_percentage, max_result.get('link')))
+                results = None
+            if results is not None:
+                plagiarism_case = self.search_result_processor.get_plagiarism_case(results, sentence)
+                if plagiarism_case is not None:
+                    found_plagiarism.append(plagiarism_case)
                 self.view.update_progress_bar(self.calculate_progress_percentage(sentences_count, current_sentence))
                 current_sentence += 1
         self.process_search_result(found_plagiarism, sentences_count, filename)
