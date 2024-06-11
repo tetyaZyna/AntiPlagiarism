@@ -1,3 +1,5 @@
+import os.path
+
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -9,7 +11,11 @@ class MainWindow(QMainWindow):
         self.input_prompt_text = "Введіть або виберіть шлях до файлу"
         self.controller = controller
         self.setWindowTitle("AntiPlagiat")
-        self.setWindowIcon(QIcon("views/icons/app_icon.ico"))
+        if os.path.exists('app/views/icons/app_icon.ico'):
+            icon = 'app/views/icons/app_icon.ico'
+        else:
+            icon = 'views/icons/app_icon.ico'
+        self.setWindowIcon(QIcon(icon))
         self.setMinimumSize(550, 340)
         self.setGeometry(0, 0, 550, 340)
         self._move_to_center()
@@ -56,7 +62,11 @@ class MainWindow(QMainWindow):
 
         settings_button = QPushButton()
         settings_button.clicked.connect(self._open_settings)
-        settings_button.setIcon(QIcon("views/icons/settings.ico"))
+        if os.path.exists('app/views/icons/settings.ico'):
+            icon = 'app/views/icons/settings.ico'
+        else:
+            icon = 'views/icons/settings.ico'
+        settings_button.setIcon(QIcon(icon))
         settings_button.setFixedWidth(30)
         control_button_layout.addWidget(settings_button)
 
@@ -235,6 +245,11 @@ class MainWindow(QMainWindow):
         self.info_label.setText(text)
         self.info_label.setStyleSheet(f"color: {color};")
 
+    def update_debug_label(self, text, color='blue'):
+        self.debug_label.show()
+        self.debug_label.setText(text)
+        self.debug_label.setStyleSheet(f"color: {color};")
+
     def _clear_progress_bar(self):
         self.progress_bar.hide()
         self.progress_bar.setValue(0)
@@ -256,3 +271,8 @@ class MainWindow(QMainWindow):
         self.progress_bar.setFixedHeight(20)
         self.progress_bar.hide()
         self.status_bar.addWidget(self.progress_bar)
+        self.debug_label = QLabel(self)
+        self.debug_label.setFixedHeight(20)
+        self.debug_label.hide()
+        self.status_bar.addPermanentWidget(self.debug_label)
+

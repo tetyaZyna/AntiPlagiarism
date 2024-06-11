@@ -15,7 +15,11 @@ class ReportGenerator:
                             'normal': ['#E6E317', '#F9F8B0'],
                             'bad': ['#E61C17', '#F9B2B0',]}
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.template_path = os.path.join(current_dir, "template/template.docx")
+        if os.path.exists('app/utils/template/template.docx'):
+            path = 'app/utils/template/template.docx'
+        else:
+            path = 'utils/template/template.docx'
+        self.template_path = os.path.join(path)
 
     def _load_template(self):
         doc = Document(self.template_path)
