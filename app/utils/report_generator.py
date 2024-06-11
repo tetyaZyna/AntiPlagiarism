@@ -103,10 +103,10 @@ class ReportGenerator:
     def _add_plagiarism_detail(doc, plagiarisms):
         start_index = 1
         for plagiarism in plagiarisms:
-            paragraph = doc.add_paragraph(f'{start_index}. {plagiarism.sentence}')
+            paragraph = doc.add_paragraph(f'{start_index}. {plagiarism.get('sentence')}')
             run = paragraph.runs[0]
             run.font.name = 'Arial'
-            paragraph = doc.add_paragraph(f'{plagiarism.link}')
+            paragraph = doc.add_paragraph(f'{plagiarism.get('link')}')
             run = paragraph.runs[0]
             run.font.name = 'Arial'
             start_index += 1

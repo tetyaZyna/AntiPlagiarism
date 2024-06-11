@@ -8,7 +8,7 @@ import PyPDF2
 import docx
 from PyQt5.QtWidgets import QApplication
 
-from app.config.config_manager import ConfigManager
+from config.config_manager import ConfigManager
 from views import *
 from utils import *
 
@@ -68,15 +68,12 @@ class MainController:
         self.view.update_start_button(False)
         sentences = self.text_processor.get_sentences(text)
         try:
-            thread = threading.Thread(target=self.search_plagiat_in_thread, args=(sentences, filename))
+            thread = threading.Thread(target=self.search_plagiat, args=(sentences, filename))
             thread.start()
         except Exception as e:
             print("An error occurred:", e)
             print("Full traceback:")
             traceback.print_exc()
-
-    def search_plagiat_in_thread(self, sentences, filename):
-        self.search_plagiat(sentences, filename)
 
     def search_plagiat(self, sentences, filename):
         found_plagiarism = []
