@@ -1,8 +1,6 @@
 import re
 from difflib import SequenceMatcher
 
-# from models.plagiarism_case import PlagiarismCase
-
 
 class SearchResultProcessor:
     def get_report_data(self, found_plagiarism, sentences_count):
@@ -22,7 +20,6 @@ class SearchResultProcessor:
             return {'sentence': max_result.get('snippet'),
                     'plagiarism_rate': max_percentage,
                     'link': max_result.get('link')}
-            # return PlagiarismCase(max_result.get('snippet'), max_percentage, max_result.get('link'))
         else:
             return None
 

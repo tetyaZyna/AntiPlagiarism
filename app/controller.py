@@ -63,7 +63,6 @@ class MainController:
         self.get_sentences(text)
 
     def get_sentences(self, text, filename='entered_text'):
-        print(f"started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         self.view.update_progress_bar()
         self.view.update_start_button(False)
         sentences = self.text_processor.get_sentences(text)
@@ -78,7 +77,6 @@ class MainController:
     def search_plagiat(self, sentences, filename):
         found_plagiarism = []
         sentences_count = len(sentences)
-        print(f"sentences_count : {sentences_count}")
         current_sentence = 1
         for sentence in sentences:
             try:
@@ -109,7 +107,6 @@ class MainController:
     def generate_report(self, found_plagiarism, plagiarism_percentages, filename):
         save_path = self.config_manager.read_config().get("path_to_save")
         self.report_generator.generate_document(found_plagiarism, plagiarism_percentages, filename, save_path)
-        print(f"ended at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     def run(self):
         self.view.show()
